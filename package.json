@@ -1,0 +1,9 @@
+{
+  "name": "1v1-games",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ]
+}
