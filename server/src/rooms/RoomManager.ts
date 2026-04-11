@@ -34,6 +34,7 @@ export class RoomManager {
   }
 
   delete(code: string): void {
+    this.rooms.get(code)?.clearGameInterval();
     this.rooms.delete(code);
   }
 
@@ -41,6 +42,7 @@ export class RoomManager {
     const now = Date.now();
     for (const [code, room] of this.rooms) {
       if (now - room.lastActivityAt > ROOM_TTL_MS) {
+        room.clearGameInterval();
         this.rooms.delete(code);
       }
     }

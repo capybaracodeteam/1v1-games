@@ -8,10 +8,11 @@ import type { GameType } from "@1v1/shared";
 
 const GAME_LABELS: Record<GameType, string> = {
   rps: "Rock Paper Scissors",
+  wordle: "Wordle",
 };
 
 function resolveGameType(param: string | null): GameType {
-  if (param === "rps") return "rps";
+  if (param === "wordle") return "wordle";
   return "rps"; // default
 }
 

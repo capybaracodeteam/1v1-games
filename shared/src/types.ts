@@ -1,6 +1,6 @@
 // ── Game types ──────────────────────────────────────────────────────────────
 
-export type GameType = "rps";
+export type GameType = "rps" | "wordle";
 
 export type RoomStatus = "waiting" | "playing" | "finished";
 
@@ -46,7 +46,7 @@ export interface LobbyLeavePayload {
 
 export interface GameActionPayload {
   roomCode: string;
-  action: RPSChoice; // union across all games later
+  action: string; // validated per game type on the server
 }
 
 export interface GameForfeitPayload {
@@ -97,6 +97,30 @@ export interface GameOverPayload {
 
 export interface GameRematchRequestedPayload {
   requesterId: string;
+}
+
+// ── Wordle ───────────────────────────────────────────────────────────────────
+
+export type LetterResult = "correct" | "present" | "absent";
+
+export interface WordleGuess {
+  word: string;       // 5 letters; empty string for opponent view (colors only)
+  result: LetterResult[];
+}
+
+export interface WordlePlayerState {
+  wordIndex: number;
+  currentWord: string;    // own: actual word; opponent view: empty string
+  guesses: WordleGuess[];
+  roundComplete: boolean; // true after solving or exhausting 6 guesses; board resets on next tick
+}
+
+export interface WordleState {
+  playerIds: [string, string];
+  wordSequence: string[]; // server-only; always [] in serialized views sent to clients
+  players: Record<string, WordlePlayerState>;
+  hp: Record<string, number>;
+  lastHpTick: number;     // ms timestamp of last server HP computation
 }
 
 // ── Typed Socket.io event maps ───────────────────────────────────────────────

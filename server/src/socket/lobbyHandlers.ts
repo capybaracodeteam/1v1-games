@@ -9,10 +9,11 @@ import type {
 } from "@1v1/shared";
 import type { RoomManager } from "../rooms/RoomManager.js";
 import { RockPaperScissorsEngine } from "../games/RockPaperScissors.js";
-import { isGameError } from "../games/GameEngine.js";
+import { WordleEngine } from "../games/WordleEngine.js";
+import { startWordleHpInterval } from "./gameHandlers.js";
 
 const LobbyCreateSchema = z.object({
-  gameType: z.enum(["rps"]),
+  gameType: z.enum(["rps", "wordle"]),
   playerName: z.string().min(1).max(20),
 });
 
@@ -53,7 +54,7 @@ export function registerLobbyHandlers(
     const room = roomManager.get(roomCode);
 
     if (!room) {
-      socket.emit("lobby:joined", { roomCode, players: [] }); // reuse event to signal failure
+      socket.emit("lobby:joined", { roomCode, players: [] });
       return;
     }
     if (room.isFull()) return;
@@ -72,9 +73,11 @@ export function registerLobbyHandlers(
       room.status = "playing";
       const [p1, p2] = room.players as [typeof room.players[0], typeof room.players[0]];
 
-      // Init game state
       if (room.gameType === "rps") {
         room.gameState = RockPaperScissorsEngine.initState([p1, p2]);
+      } else if (room.gameType === "wordle") {
+        room.gameState = WordleEngine.initState([p1, p2]);
+        startWordleHpInterval(io, room, roomCode, roomManager);
       }
 
       io.to(roomCode).emit("game:start", {
@@ -92,7 +95,6 @@ export function registerLobbyHandlers(
   });
 
   socket.on("disconnect", () => {
-    // Find any room this socket is in and clean up
     for (const roomCode of socket.rooms) {
       if (roomCode !== socket.id) {
         handleLeave(io, socket, roomManager, roomCode);

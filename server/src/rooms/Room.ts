@@ -7,6 +7,7 @@ export class Room {
   status: RoomStatus = "waiting";
   gameState: unknown = null;
   lastActivityAt: number = Date.now();
+  gameInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(code: string, gameType: GameType) {
     this.code = code;
@@ -27,5 +28,12 @@ export class Room {
 
   touch(): void {
     this.lastActivityAt = Date.now();
+  }
+
+  clearGameInterval(): void {
+    if (this.gameInterval !== null) {
+      clearInterval(this.gameInterval);
+      this.gameInterval = null;
+    }
   }
 }

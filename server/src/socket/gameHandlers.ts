@@ -8,14 +8,17 @@ import type {
   GameRematchPayload,
   RPSState,
   RPSChoice,
+  WordleState,
 } from "@1v1/shared";
 import type { RoomManager } from "../rooms/RoomManager.js";
+import type { Room } from "../rooms/Room.js";
 import { RockPaperScissorsEngine } from "../games/RockPaperScissors.js";
+import { WordleEngine } from "../games/WordleEngine.js";
 import { isGameError } from "../games/GameEngine.js";
 
 const GameActionSchema = z.object({
   roomCode: z.string().min(1).max(10),
-  action: z.enum(["rock", "paper", "scissors"]),
+  action: z.string().min(1).max(10),
 });
 
 const GameForfeitSchema = z.object({
@@ -31,6 +34,77 @@ type IOSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 
 // Track rematch requests per room
 const rematchRequests = new Map<string, Set<string>>();
+
+function emitGameState(io: IOServer, room: Room): void {
+  for (const player of room.players) {
+    const playerSocket = io.sockets.sockets.get(player.id);
+    if (!playerSocket) continue;
+
+    let serialized: unknown;
+    if (room.gameType === "rps") {
+      serialized = RockPaperScissorsEngine.serializeForPlayer(room.gameState as RPSState, player.id);
+    } else if (room.gameType === "wordle") {
+      serialized = WordleEngine.serializeForPlayer(room.gameState as WordleState, player.id);
+    }
+    if (serialized !== undefined) {
+      playerSocket.emit("game:state_update", { state: serialized });
+    }
+  }
+}
+
+export function startWordleHpInterval(
+  io: IOServer,
+  room: Room,
+  roomCode: string,
+  roomManager: RoomManager
+): void {
+  room.clearGameInterval();
+  room.gameInterval = setInterval(() => {
+    if (room.status !== "playing") return;
+    const state = room.gameState as WordleState;
+    const now = Date.now();
+    const elapsed = Math.floor((now - state.lastHpTick) / 1000);
+
+    // Advance any rounds that completed last tick
+    const players = { ...state.players };
+    for (const pid of state.playerIds) {
+      if (players[pid].roundComplete) {
+        const nextIndex = Math.min(players[pid].wordIndex + 1, state.wordSequence.length - 1);
+        players[pid] = {
+          wordIndex: nextIndex,
+          currentWord: state.wordSequence[nextIndex] ?? "",
+          guesses: [],
+          roundComplete: false,
+        };
+      }
+    }
+
+    // Apply HP decay
+    const hp = { ...state.hp };
+    for (const pid of state.playerIds) {
+      hp[pid] = Math.max(0, hp[pid] - elapsed);
+    }
+
+    const newState: WordleState = {
+      ...state,
+      players,
+      hp,
+      lastHpTick: state.lastHpTick + elapsed * 1000,
+    };
+    room.gameState = newState;
+    room.touch();
+
+    emitGameState(io, room);
+
+    const win = WordleEngine.checkWin(newState);
+    if (win) {
+      room.clearGameInterval();
+      room.status = "finished";
+      io.to(roomCode).emit("game:over", { winnerId: win.winnerId });
+      roomManager.delete(roomCode);
+    }
+  }, 1000);
+}
 
 export function registerGameHandlers(
   io: IOServer,
@@ -53,6 +127,8 @@ export function registerGameHandlers(
         action as RPSChoice,
         socket.id
       );
+    } else if (room.gameType === "wordle") {
+      result = WordleEngine.applyAction(room.gameState as WordleState, action, socket.id);
     } else {
       return;
     }
@@ -65,25 +141,22 @@ export function registerGameHandlers(
     room.gameState = result;
     room.touch();
 
-    // Serialize state per player and emit
-    for (const player of room.players) {
-      const playerSocket = io.sockets.sockets.get(player.id);
-      if (!playerSocket) continue;
+    emitGameState(io, room);
 
-      let serialized: unknown;
-      if (room.gameType === "rps") {
-        serialized = RockPaperScissorsEngine.serializeForPlayer(
-          room.gameState as RPSState,
-          player.id
-        );
+    if (room.gameType === "rps") {
+      const win = RockPaperScissorsEngine.checkWin(room.gameState as RPSState);
+      if (win) {
+        room.status = "finished";
+        io.to(roomCode).emit("game:over", { winnerId: win.winnerId });
       }
-      playerSocket.emit("game:state_update", { state: serialized });
-    }
-
-    const win = RockPaperScissorsEngine.checkWin(room.gameState as RPSState);
-    if (win) {
-      room.status = "finished";
-      io.to(roomCode).emit("game:over", { winnerId: win.winnerId });
+    } else if (room.gameType === "wordle") {
+      const win = WordleEngine.checkWin(room.gameState as WordleState);
+      if (win) {
+        room.clearGameInterval();
+        room.status = "finished";
+        io.to(roomCode).emit("game:over", { winnerId: win.winnerId });
+        roomManager.delete(roomCode);
+      }
     }
   });
 
@@ -95,6 +168,7 @@ export function registerGameHandlers(
     const room = roomManager.get(roomCode);
     if (!room || room.status !== "playing" || !room.hasPlayer(socket.id)) return;
 
+    room.clearGameInterval();
     room.status = "finished";
     room.touch();
     io.to(roomCode).emit("game:over", { winnerId: null, forfeit: true });
@@ -122,7 +196,11 @@ export function registerGameHandlers(
 
       if (room.gameType === "rps") {
         room.gameState = RockPaperScissorsEngine.initState([p1, p2]);
+      } else if (room.gameType === "wordle") {
+        room.gameState = WordleEngine.initState([p1, p2]);
+        startWordleHpInterval(io, room, roomCode, roomManager);
       }
+
       room.status = "playing";
       room.touch();
 

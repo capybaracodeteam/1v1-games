@@ -7,7 +7,6 @@ import type {
   GameOverPayload,
   GameRematchRequestedPayload,
   GameStartPayload,
-  RPSChoice,
   RPSState,
 } from "@1v1/shared";
 
@@ -33,18 +32,21 @@ export function useGameState(roomCode: string) {
   const [game, setGame] = useState<GameState>(() => {
     const pending = consumePendingGame();
     const players = pending?.players ?? null;
+    const gameType = pending?.gameType ?? null;
     return {
-      state: players ? initialRPSState(players) : null,
+      // For RPS give an optimistic initial state; for other games wait for the server
+      state: (players && gameType === "rps") ? initialRPSState(players) : null,
       gameOver: null,
       rematchRequested: false,
       players,
-      gameType: pending?.gameType ?? null,
+      gameType,
     };
   });
 
   useEffect(() => {
     function onStart({ players, gameType }: GameStartPayload) {
-      setGame({ state: initialRPSState(players), gameOver: null, rematchRequested: false, players, gameType });
+      const initialState = gameType === "rps" ? initialRPSState(players) : null;
+      setGame({ state: initialState, gameOver: null, rematchRequested: false, players, gameType });
     }
 
     function onStateUpdate({ state }: { state: unknown }) {
@@ -73,7 +75,7 @@ export function useGameState(roomCode: string) {
   }, []);
 
   const sendAction = useCallback(
-    (action: RPSChoice) => {
+    (action: string) => {
       socket.emit("game:action", { roomCode, action });
     },
     [roomCode]

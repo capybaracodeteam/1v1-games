@@ -12,12 +12,12 @@ export default function Home() {
         >
           Rock Paper Scissors
         </Link>
-        <button
-          disabled
-          className="px-6 py-3 bg-gray-200 text-gray-400 rounded-xl text-lg font-semibold cursor-not-allowed"
+        <Link
+          href="/lobby?game=wordle"
+          className="px-6 py-3 bg-purple-600 text-white rounded-xl text-lg font-semibold hover:bg-purple-700 transition-colors text-center"
         >
-          Word Game (Coming Soon)
-        </button>
+          Wordle
+        </Link>
       </div>
     </main>
   );

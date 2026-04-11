@@ -4,7 +4,8 @@ import { use } from "react";
 import { socket } from "@/lib/socket";
 import { useGameState } from "@/hooks/useGameState";
 import RockPaperScissors from "@/components/games/RockPaperScissors";
-import type { RPSState } from "@1v1/shared";
+import Wordle from "@/components/games/Wordle";
+import type { RPSState, WordleState } from "@1v1/shared";
 
 export default function GamePage({
   params,
@@ -28,13 +29,11 @@ export default function GamePage({
 
   function renderGame() {
     if (gameType === "rps") {
-      return (
-        <RockPaperScissors
-          state={state as RPSState}
-          myId={myId}
-          onChoice={sendAction}
-        />
-      );
+      return <RockPaperScissors state={state as RPSState} myId={myId} onChoice={sendAction} />;
+    }
+    if (gameType === "wordle") {
+      if (!state) return <p className="text-gray-400 animate-pulse">Connecting…</p>;
+      return <Wordle state={state as WordleState} myId={myId} onChoice={sendAction} />;
     }
     return <div className="text-gray-400">Unknown game type: {gameType}</div>;
   }
