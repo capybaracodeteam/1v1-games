@@ -15,15 +15,18 @@ export default function RockPaperScissors({ state, myId, onChoice }: Props) {
   const myChoice = state.choices[myId];
   const opponentId = Object.keys(state.choices).find((id) => id !== myId) ?? "";
   const opponentChoice = state.choices[opponentId];
-  const myScore = state.scores[myId] ?? 0;
-  const opponentScore = state.scores[opponentId] ?? 0;
+  const myHearts = state.hearts[myId] ?? 3;
+  const oppHearts = state.hearts[opponentId] ?? 3;
   const waiting = myChoice !== null && opponentChoice === null;
 
   return (
     <div className="flex flex-col items-center gap-6 p-8">
       <div className="text-2xl font-bold">
-        Round {state.round} — Score: {myScore} : {opponentScore}
+        {"❤️".repeat(Math.max(0, myHearts))}{"🖤".repeat(Math.max(0, 3 - myHearts))}
+        {" vs "}
+        {"❤️".repeat(Math.max(0, oppHearts))}{"🖤".repeat(Math.max(0, 3 - oppHearts))}
       </div>
+      <div className="text-sm text-gray-500">Round {state.round}</div>
 
       {state.roundResult && (
         <div className="text-lg text-center">

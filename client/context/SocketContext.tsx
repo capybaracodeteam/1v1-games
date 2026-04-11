@@ -37,6 +37,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     socket.on("disconnect", onDisconnect);
     socket.on("connect_error", onConnectError);
 
+    // Auto-connect on mount (client-only — useEffect never runs on the server)
+    socket.connect();
+
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);

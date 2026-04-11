@@ -14,7 +14,7 @@ export const RockPaperScissorsEngine: GameEngine<RPSState, RPSChoice> = {
     return {
       playerIds: [players[0].id, players[1].id],
       choices: { [players[0].id]: null, [players[1].id]: null },
-      scores: { [players[0].id]: 0, [players[1].id]: 0 },
+      hearts: { [players[0].id]: 3, [players[1].id]: 3 },
       roundResult: null,
       round: 1,
     };
@@ -47,12 +47,15 @@ export const RockPaperScissorsEngine: GameEngine<RPSState, RPSChoice> = {
         winnerId = BEATS[c1] === c2 ? p1 : p2;
       }
 
-      const newScores = { ...updated.scores };
-      if (winnerId) newScores[winnerId] += 1;
+      const newHearts = { ...updated.hearts };
+      if (winnerId) {
+        const loserId = state.playerIds.find((id) => id !== winnerId)!;
+        newHearts[loserId] = Math.max(0, newHearts[loserId] - 1);
+      }
 
       return {
         ...updated,
-        scores: newScores,
+        hearts: newHearts,
         roundResult: { winner: winnerId, choices: { [p1]: c1, [p2]: c2 } },
         round: updated.round + 1,
         choices: { [p1]: null, [p2]: null },
@@ -63,8 +66,12 @@ export const RockPaperScissorsEngine: GameEngine<RPSState, RPSChoice> = {
   },
 
   checkWin(state: RPSState): WinResult | null {
-    // Best-of-nothing for now; game ends via forfeit or explicit stop.
-    // Extend here for first-to-N logic.
+    for (const pid of state.playerIds) {
+      if ((state.hearts[pid] ?? 3) <= 0) {
+        const winnerId = state.playerIds.find((id) => id !== pid) ?? null;
+        return { winnerId };
+      }
+    }
     return null;
   },
 

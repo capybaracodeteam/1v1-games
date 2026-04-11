@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLobby } from "@/hooks/useLobby";
-import { useSocket } from "@/context/SocketContext";
 import type { GameType } from "@1v1/shared";
 
 const GAME_LABELS: Record<GameType, string> = {
@@ -17,7 +16,6 @@ function resolveGameType(param: string | null): GameType {
 }
 
 export default function LobbyPage() {
-  const { status, connect } = useSocket();
   const { roomCode, error, createRoom, joinRoom } = useLobby();
   const [playerName, setPlayerName] = useState("");
   const [joinCode, setJoinCode] = useState("");
@@ -29,17 +27,7 @@ export default function LobbyPage() {
 
   return (
     <main className="flex flex-col items-center justify-center flex-1 gap-10 p-8">
-      <h1 className="text-3xl font-bold">{gameLabel} — Lobby</h1>
-
-      {status !== "connected" && (
-        <button
-          onClick={connect}
-          disabled={status === "connecting"}
-          className="px-4 py-2 bg-gray-800 text-white rounded-lg disabled:opacity-50"
-        >
-          {status === "connecting" ? "Connecting…" : "Connect"}
-        </button>
-      )}
+      <h1 className="text-3xl font-bold">{gameLabel}</h1>
 
       <div className="w-full max-w-sm flex flex-col gap-3">
         <input
@@ -62,7 +50,7 @@ export default function LobbyPage() {
         <div className="flex gap-2">
           <input
             className="border rounded-lg px-4 py-2 w-32 uppercase"
-            placeholder="Room code"
+            placeholder="Code"
             maxLength={6}
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value.toUpperCase())}

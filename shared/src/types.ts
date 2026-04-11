@@ -16,7 +16,7 @@ export type RPSChoice = "rock" | "paper" | "scissors";
 export interface RPSState {
   playerIds: [string, string];               // stable ordered pair, set at game init
   choices: Record<string, RPSChoice | null>; // playerId → choice (null = not yet chosen)
-  scores: Record<string, number>;            // playerId → wins
+  hearts: Record<string, number>;            // playerId → remaining hearts (starts at 3)
   roundResult: RPSRoundResult | null;
   round: number;
 }
@@ -95,10 +95,6 @@ export interface GameOverPayload {
   forfeit?: boolean;
 }
 
-export interface GameRematchRequestedPayload {
-  requesterId: string;
-}
-
 // ── Wordle ───────────────────────────────────────────────────────────────────
 
 export type LetterResult = "correct" | "present" | "absent";
@@ -145,5 +141,4 @@ export interface ServerToClientEvents {
   "game:state_update": (payload: GameStateUpdatePayload) => void;
   "game:action_rejected": (payload: GameActionRejectedPayload) => void;
   "game:over": (payload: GameOverPayload) => void;
-  "game:rematch_requested": (payload: GameRematchRequestedPayload) => void;
 }

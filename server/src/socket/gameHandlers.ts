@@ -32,8 +32,6 @@ const GameRematchSchema = z.object({
 type IOServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type IOSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 
-// Track rematch requests per room
-const rematchRequests = new Map<string, Set<string>>();
 
 function emitGameState(io: IOServer, room: Room): void {
   for (const player of room.players) {
@@ -182,33 +180,22 @@ export function registerGameHandlers(
     const room = roomManager.get(roomCode);
     if (!room || room.status !== "finished" || !room.hasPlayer(socket.id)) return;
 
-    if (!rematchRequests.has(roomCode)) {
-      rematchRequests.set(roomCode, new Set());
+    const [p1, p2] = room.players as [typeof room.players[0], typeof room.players[0]];
+
+    if (room.gameType === "rps") {
+      room.gameState = RockPaperScissorsEngine.initState([p1, p2]);
+    } else if (room.gameType === "wordle") {
+      room.gameState = WordleEngine.initState([p1, p2]);
+      startWordleHpInterval(io, room, roomCode, roomManager);
     }
-    const requests = rematchRequests.get(roomCode)!;
-    requests.add(socket.id);
 
-    socket.to(roomCode).emit("game:rematch_requested", { requesterId: socket.id });
+    room.status = "playing";
+    room.touch();
 
-    if (requests.size === 2) {
-      rematchRequests.delete(roomCode);
-      const [p1, p2] = room.players as [typeof room.players[0], typeof room.players[0]];
-
-      if (room.gameType === "rps") {
-        room.gameState = RockPaperScissorsEngine.initState([p1, p2]);
-      } else if (room.gameType === "wordle") {
-        room.gameState = WordleEngine.initState([p1, p2]);
-        startWordleHpInterval(io, room, roomCode, roomManager);
-      }
-
-      room.status = "playing";
-      room.touch();
-
-      io.to(roomCode).emit("game:start", {
-        roomCode,
-        gameType: room.gameType,
-        players: [p1, p2],
-      });
-    }
+    io.to(roomCode).emit("game:start", {
+      roomCode,
+      gameType: room.gameType,
+      players: [p1, p2],
+    });
   });
 }

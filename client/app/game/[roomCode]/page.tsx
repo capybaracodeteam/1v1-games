@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import { useRouter } from "next/navigation";
 import { socket } from "@/lib/socket";
 import { useGameState } from "@/hooks/useGameState";
 import RockPaperScissors from "@/components/games/RockPaperScissors";
@@ -13,7 +14,8 @@ export default function GamePage({
   params: Promise<{ roomCode: string }>;
 }) {
   const { roomCode } = use(params);
-  const { state, gameType, gameOver, rematchRequested, players, sendAction, forfeit, requestRematch } =
+  const router = useRouter();
+  const { state, gameType, gameOver, players, sendAction, leave, requestRematch } =
     useGameState(roomCode);
 
   const myId = socket.id ?? "";
@@ -61,10 +63,10 @@ export default function GamePage({
               onClick={requestRematch}
               className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700"
             >
-              {rematchRequested ? "Waiting for opponent…" : "Rematch"}
+              Rematch
             </button>
             <button
-              onClick={forfeit}
+              onClick={() => { leave(); router.push('/'); }}
               className="px-6 py-3 border rounded-xl font-semibold hover:bg-gray-100"
             >
               Leave
@@ -74,12 +76,6 @@ export default function GamePage({
       ) : (
         <>
           {renderGame()}
-          <button
-            onClick={forfeit}
-            className="text-sm text-gray-400 hover:text-red-500"
-          >
-            Forfeit
-          </button>
         </>
       )}
     </main>
