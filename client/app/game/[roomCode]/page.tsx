@@ -1,0 +1,79 @@
+"use client";
+
+import { use } from "react";
+import { socket } from "@/lib/socket";
+import { useGameState } from "@/hooks/useGameState";
+import RockPaperScissors from "@/components/games/RockPaperScissors";
+import type { RPSState } from "@1v1/shared";
+
+export default function GamePage({
+  params,
+}: {
+  params: Promise<{ roomCode: string }>;
+}) {
+  const { roomCode } = use(params);
+  const { state, gameOver, rematchRequested, players, sendAction, forfeit, requestRematch } =
+    useGameState(roomCode);
+
+  const myId = socket.id ?? "";
+  const opponent = players?.find((p) => p.id !== myId);
+
+  if (!players) {
+    return (
+      <main className="flex items-center justify-center flex-1 p-8">
+        <p className="text-gray-400 animate-pulse">Loading game…</p>
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex flex-col items-center flex-1 gap-6 p-8">
+      <div className="text-lg font-semibold">
+        Room: <span className="font-mono">{roomCode}</span>
+        {opponent && <span className="ml-4 text-gray-500">vs {opponent.name}</span>}
+      </div>
+
+      {gameOver ? (
+        <div className="flex flex-col items-center gap-4 text-center">
+          <h2 className="text-3xl font-bold">
+            {gameOver.winnerId === myId
+              ? "You won!"
+              : gameOver.winnerId === null
+              ? "Draw!"
+              : gameOver.forfeit
+              ? "Opponent forfeited."
+              : "You lost."}
+          </h2>
+          <div className="flex gap-4">
+            <button
+              onClick={requestRematch}
+              className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700"
+            >
+              {rematchRequested ? "Waiting for opponent…" : "Rematch"}
+            </button>
+            <button
+              onClick={forfeit}
+              className="px-6 py-3 border rounded-xl font-semibold hover:bg-gray-100"
+            >
+              Leave
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <RockPaperScissors
+            state={state as RPSState}
+            myId={myId}
+            onChoice={sendAction}
+          />
+          <button
+            onClick={forfeit}
+            className="text-sm text-gray-400 hover:text-red-500"
+          >
+            Forfeit
+          </button>
+        </>
+      )}
+    </main>
+  );
+}
