@@ -13,6 +13,7 @@ import type {
 
 function initialRPSState(players: GameStartPayload["players"]): RPSState {
   return {
+    playerIds: [players[0].id, players[1].id],
     choices: { [players[0].id]: null, [players[1].id]: null },
     scores: { [players[0].id]: 0, [players[1].id]: 0 },
     roundResult: null,
@@ -25,6 +26,7 @@ interface GameState {
   gameOver: GameOverPayload | null;
   rematchRequested: boolean;
   players: GameStartPayload["players"] | null;
+  gameType: GameStartPayload["gameType"] | null;
 }
 
 export function useGameState(roomCode: string) {
@@ -36,12 +38,13 @@ export function useGameState(roomCode: string) {
       gameOver: null,
       rematchRequested: false,
       players,
+      gameType: pending?.gameType ?? null,
     };
   });
 
   useEffect(() => {
-    function onStart({ players }: GameStartPayload) {
-      setGame({ state: initialRPSState(players), gameOver: null, rematchRequested: false, players });
+    function onStart({ players, gameType }: GameStartPayload) {
+      setGame({ state: initialRPSState(players), gameOver: null, rematchRequested: false, players, gameType });
     }
 
     function onStateUpdate({ state }: { state: unknown }) {

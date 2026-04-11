@@ -12,7 +12,7 @@ export default function GamePage({
   params: Promise<{ roomCode: string }>;
 }) {
   const { roomCode } = use(params);
-  const { state, gameOver, rematchRequested, players, sendAction, forfeit, requestRematch } =
+  const { state, gameType, gameOver, rematchRequested, players, sendAction, forfeit, requestRematch } =
     useGameState(roomCode);
 
   const myId = socket.id ?? "";
@@ -24,6 +24,19 @@ export default function GamePage({
         <p className="text-gray-400 animate-pulse">Loading game…</p>
       </main>
     );
+  }
+
+  function renderGame() {
+    if (gameType === "rps") {
+      return (
+        <RockPaperScissors
+          state={state as RPSState}
+          myId={myId}
+          onChoice={sendAction}
+        />
+      );
+    }
+    return <div className="text-gray-400">Unknown game type: {gameType}</div>;
   }
 
   return (
@@ -61,11 +74,7 @@ export default function GamePage({
         </div>
       ) : (
         <>
-          <RockPaperScissors
-            state={state as RPSState}
-            myId={myId}
-            onChoice={sendAction}
-          />
+          {renderGame()}
           <button
             onClick={forfeit}
             className="text-sm text-gray-400 hover:text-red-500"

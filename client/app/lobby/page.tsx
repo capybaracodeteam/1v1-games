@@ -1,20 +1,34 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLobby } from "@/hooks/useLobby";
 import { useSocket } from "@/context/SocketContext";
+import type { GameType } from "@1v1/shared";
+
+const GAME_LABELS: Record<GameType, string> = {
+  rps: "Rock Paper Scissors",
+};
+
+function resolveGameType(param: string | null): GameType {
+  if (param === "rps") return "rps";
+  return "rps"; // default
+}
 
 export default function LobbyPage() {
   const { status, connect } = useSocket();
   const { roomCode, error, createRoom, joinRoom } = useLobby();
   const [playerName, setPlayerName] = useState("");
   const [joinCode, setJoinCode] = useState("");
+  const searchParams = useSearchParams();
+  const gameType = resolveGameType(searchParams.get("game"));
+  const gameLabel = GAME_LABELS[gameType];
 
   const ready = playerName.trim().length > 0;
 
   return (
     <main className="flex flex-col items-center justify-center flex-1 gap-10 p-8">
-      <h1 className="text-3xl font-bold">Lobby</h1>
+      <h1 className="text-3xl font-bold">{gameLabel} — Lobby</h1>
 
       {status !== "connected" && (
         <button
@@ -38,7 +52,7 @@ export default function LobbyPage() {
       <div className="flex gap-6 flex-wrap justify-center">
         <button
           disabled={!ready}
-          onClick={() => createRoom("rps", playerName.trim())}
+          onClick={() => createRoom(gameType, playerName.trim())}
           className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold disabled:opacity-40 hover:bg-blue-700 transition-colors"
         >
           Create Room
