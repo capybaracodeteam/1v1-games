@@ -1,3 +1,6 @@
+import { readFileSync } from "fs";
+import { join } from "path";
+
 // NYT-style Wordle answer words — common everyday 5-letter words used as puzzle answers.
 // Every entry must be exactly 5 uppercase letters. The startup assertion below enforces this.
 export const ANSWERS: string[] = [
@@ -178,69 +181,20 @@ export const ANSWERS: string[] = [
   "ZESTY", "ZIPPY", "ZONAL",
 ];
 
-// Additional valid guess words — accepted inputs but not used as puzzle answers.
-// Every entry must be exactly 5 uppercase letters.
-const EXTRA_GUESSES: string[] = [
-  "AAHED", "ABACI", "ABACK", "ABAFT", "ABASH", "ABEAM", "ABELE", "ABETS",
-  "ACNED", "ACOCK", "AEGIS", "AEONS", "AERIE", "AGAVE", "AGLOW", "AGUED",
-  "AHULL", "AIDED", "AIMER", "AITCH", "ALEPH", "ALGID", "ALIBI", "ALIVE",
-  "AMONG", "AMBIT", "AMIDE", "AMIGO", "AMOUR", "AMUSE", "ANGST", "ANOLE",
-  "APIAN", "APISH", "APTLY", "ARGON", "ARIEL", "ARLES", "AZINE", "AZOTH",
-  "BAIRN", "BAIZE", "BALKY", "BANAL", "BANDY", "BANGS", "BASTE", "BATTY",
-  "BEAUT", "BEDEW", "BEGOT", "BEGIN", "BESOT", "BILGE", "BIMBO", "BIOME",
-  "BITTY", "BLASE", "BLEAR", "BLEND", "BLIMP", "BLINI", "BLINK", "BLITZ",
-  "BLUEY", "BOGLE", "BOGUS", "BOLUS", "BOOBY", "BORAX", "BOTCH", "BOUGH",
-  "BOUND", "BREVE", "BRUIN", "BUNCH", "BURIN", "BUTCH", "BYWAY",
-  "CADGE", "CATER", "CAVIL", "CHAFE", "CHAFF", "CHANT", "CHAPS", "CHASM",
-  "CHIDE", "CHIVE", "CHOMP", "CHURL", "CLANG", "CLANK", "CLEAT", "COILS",
-  "COLIC", "COLON", "CONDO", "CROAK", "CROON",
-  "DOTED", "DOWER", "ENSUE", "FIEND", "FINNY", "FLAIL", "FLING", "FOIST",
-  "FRAIL", "FRANC", "GELID", "GRUEL", "GULLY",
-  "HANDY", "HILLY", "HOVEL", "HUMOR",
-  "JINGO", "JOKER", "JOLLY", "JOWLS", "KNAVE", "KUDOS",
-  "MANGE", "MANIA", "MANLY", "MEATY", "MESSY", "MINTY", "MISER", "MISTY",
-  "MIXER", "MOGUL",
-  "NIPPY", "NUTTY", "OVOID", "OWLET",
-  "PANGS", "PEEVE", "PEPPY", "PERCH", "PESKY", "PHONY", "PIGGY", "PILOT",
-  "PINCH", "PINEY", "PINKY", "PITHY", "PIXIE", "PLUME", "PLUMP", "POKEY",
-  "POPPY", "POTTY", "POUTY", "PROXY", "PUDGY", "PUNKY", "PURGE",
-  "RABID", "RAJAH", "REBUS", "REEDY", "REFER", "REGAL", "RELAY", "RIDER",
-  "RISKY", "RITZY", "RIVAL", "RUDDY", "RULED", "RUMMY", "RUPEE",
-  "SAGGY", "SAUTE", "SAVVY", "SCOFF", "SCOLD", "SCRAM", "SEDAN", "SEIZE",
-  "SHAKY", "SHUSH", "SIBYL", "SIEGE", "SKIMP", "SKULK", "SLICK", "SLIME",
-  "SLIMY", "SLINK", "SLOTH", "SLUNK", "SMASH", "SNAKY", "SPARE", "SPASM",
-  "SPILL", "SPIRE", "SPOOF", "SPOIL", "STARK", "STEAD", "STEED", "STELE",
-  "STOOP", "STORK", "SULLY", "SUNNY", "SUPER", "SWEAR", "SWOOP", "SWORD",
-  "SYRUP", "TAFFY", "TANGY", "TARDY", "TARRY", "TASTY", "TATTY", "THANE",
-  "THIEF", "TIGER", "TITAN", "TOFFY", "TOADY", "TRAMP", "TREAD", "TRYST",
-  "TUMID", "TURBO", "TURFY", "TWAIN", "TWEAK", "USURP", "VERGE", "VIRAL",
-  "VISTA", "WAILS", "WARTY", "WEALD", "WHIFF", "WHIRL", "WIMPY", "WINDY",
-  "WREAK", "WREST", "WRIST", "YOKEL", "ZONAL",
-  "ALIBI", "ALIVE", "ALLOW", "ALLOT", "ALLOY", "AMAZE", "APTLY", "ARGON",
-  "BASTE", "BLEND", "BLINK", "BLITZ", "BOGUS", "BOTCH", "BUNCH",
-  "CAVIL", "CHANT", "CHASM", "CHIDE", "CHIVE", "CHOMP", "CLANG", "CLEAT",
-  "FIEND", "FLAIL", "FUROR", "GELID", "GRUEL",
-  "HANDY", "HIPPO", "HOWDY", "HYENA",
-  "IONIC", "IRONY", "ITCHY", "JAZZY", "JIFFY",
-  "LANCE", "LORRY", "NAIVE",
-  "ODDLY", "OLIVE", "OPIUM", "ORBIT",
-  "PEEVE", "PEPPY",
-  "RABID", "REEDY",
-  "SAVVY", "SCOFF", "SCOLD", "SEIZE", "SIEGE", "SKIMP", "SLICK",
-  "TATTY", "TOADY",
-  "USURP", "VIRAL", "VISTA", "YOKEL",
-];
-
-// O(1) lookup for guess validation — built once at module load, no runtime I/O.
-export const VALID_WORDS: Set<string> = new Set([...ANSWERS, ...EXTRA_GUESSES]);
-
-// Startup assertion: catch any non-5-letter entries immediately on server start.
+// Startup assertion: catch any non-5-letter entries in ANSWERS immediately on server start.
 for (const w of ANSWERS) {
   if (w.length !== 5) throw new Error(`ANSWERS contains non-5-letter word: "${w}"`);
 }
-for (const w of EXTRA_GUESSES) {
-  if (w.length !== 5) throw new Error(`EXTRA_GUESSES contains non-5-letter word: "${w}"`);
-}
+
+// Additional valid guess words loaded from file — one lowercase word per line.
+// Filtered to exactly 5 letters and uppercased at module load; no runtime I/O after startup.
+const _extraWords = readFileSync(join(__dirname, "validWordleWords.txt"), "utf8")
+  .split("\n")
+  .map((w) => w.trim().toUpperCase())
+  .filter((w) => w.length === 5);
+
+// O(1) lookup for guess validation — built once at module load.
+export const VALID_WORDS: Set<string> = new Set([...ANSWERS, ..._extraWords]);
 
 // Fisher-Yates shuffle of ANSWERS; returns first `count` unique words.
 export function randomSubset(count: number): string[] {
