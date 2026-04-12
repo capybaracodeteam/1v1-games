@@ -1,6 +1,6 @@
 import type { Player, LetterResult, WordleGuess, WordlePlayerState, WordleState } from "@1v1/shared";
 import type { GameEngine, GameError, WinResult } from "./GameEngine.js";
-import { randomSubset } from "./wordleWords.js";
+import { randomSubset, VALID_WORDS } from "./wordleWords.js";
 
 const WORD_SEQUENCE_LENGTH = 15;
 const MAX_GUESSES = 6;
@@ -58,6 +58,9 @@ export const WordleEngine: GameEngine<WordleState, string> = {
     }
     if (!/^[A-Za-z]{5}$/.test(action)) {
       return { error: "Guess must be exactly 5 letters" };
+    }
+    if (!VALID_WORDS.has(action.toUpperCase())) {
+      return { error: "Not a valid word" };
     }
 
     const playerState = state.players[playerId];

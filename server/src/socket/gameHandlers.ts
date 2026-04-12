@@ -99,7 +99,6 @@ export function startWordleHpInterval(
       room.clearGameInterval();
       room.status = "finished";
       io.to(roomCode).emit("game:over", { winnerId: win.winnerId });
-      roomManager.delete(roomCode);
     }
   }, 1000);
 }
@@ -153,7 +152,6 @@ export function registerGameHandlers(
         room.clearGameInterval();
         room.status = "finished";
         io.to(roomCode).emit("game:over", { winnerId: win.winnerId });
-        roomManager.delete(roomCode);
       }
     }
   });

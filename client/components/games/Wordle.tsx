@@ -47,10 +47,10 @@ function getLetterStates(guesses: WordleGuess[]): Record<string, LetterResult> {
 
 function HpBar({ hp, label }: { hp: number; label: string }) {
   const clampedHp = Math.max(0, Math.min(200, hp));
-  // Red bar covers 0-100, blue overheal covers 101-200
-  // Both expressed as % of the full 200-unit bar width
-  const redPct = Math.min(clampedHp, 100) / 2;       // 0% – 50%
-  const bluePct = Math.max(0, clampedHp - 100) / 2;  // 0% – 50%
+  // Red bar: 100 HP = full bar width (0–100%)
+  // Blue overheal: overlays from left when HP > 100 (each +1 HP = +1%)
+  const redPct  = Math.min(clampedHp, 100);       // 0% – 100%
+  const bluePct = Math.max(0, clampedHp - 100);   // 0% – 100%
 
   return (
     <div className="w-full">
@@ -65,12 +65,10 @@ function HpBar({ hp, label }: { hp: number; label: string }) {
         />
         {clampedHp > 100 && (
           <div
-            className="absolute top-0 h-full bg-blue-500"
-            style={{ left: "50%", width: `${bluePct}%` }}
+            className="absolute left-0 top-0 h-full bg-blue-500"
+            style={{ width: `${bluePct}%` }}
           />
         )}
-        {/* midpoint marker */}
-        <div className="absolute top-0 h-full w-px bg-gray-400" style={{ left: "50%" }} />
       </div>
     </div>
   );
