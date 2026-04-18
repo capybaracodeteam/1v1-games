@@ -188,8 +188,9 @@ function spawnPiece(type: PieceType): ActivePiece {
   return { type, rotation: 0, row: -1, col: Math.floor((BOARD_COLS - cols) / 2) };
 }
 
-function gravityMs(level: number): number {
-  return Math.max(100, GRAVITY_BASE_MS - (level - 1) * 67);
+function gravityMs(elapsedSeconds: number): number {
+  // Decreases by 3ms per second, floored at 100ms (~4.5 min to reach max speed)
+  return Math.max(100, GRAVITY_BASE_MS - elapsedSeconds * 3);
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
@@ -223,6 +224,7 @@ export function useTetris({
   // Timing refs
   const rafRef = useRef<number | null>(null);
   const lastFallRef = useRef(0);
+  const gameStartTimeRef = useRef(Date.now());
   const lockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lockResetCountRef = useRef(0);
 
@@ -410,6 +412,7 @@ export function useTetris({
   // RAF gravity loop — runs once on mount
   useEffect(() => {
     refillBag();
+    gameStartTimeRef.current = Date.now();
     lastFallRef.current = performance.now();
     spawnNext();
     sync();
@@ -419,8 +422,8 @@ export function useTetris({
       const piece = currentRef.current;
       if (!piece) { rafRef.current = requestAnimationFrame(tick); return; }
 
-      const level = Math.floor(linesRef.current / 10) + 1;
-      if (now - lastFallRef.current >= gravityMs(level)) {
+      const elapsedSeconds = (Date.now() - gameStartTimeRef.current) / 1000;
+      if (now - lastFallRef.current >= gravityMs(elapsedSeconds)) {
         lastFallRef.current = now;
         if (isValid(boardRef.current, piece.type, piece.rotation, piece.row + 1, piece.col)) {
           currentRef.current = { ...piece, row: piece.row + 1 };
@@ -433,9 +436,18 @@ export function useTetris({
     }
 
     rafRef.current = requestAnimationFrame(tick);
+
+    function onVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        lastFallRef.current = performance.now();
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       cancelLock();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
