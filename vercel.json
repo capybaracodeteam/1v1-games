@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm run build --workspace=client",
+  "outputDirectory": "client/.next",
+  "installCommand": "npm install",
+  "framework": "nextjs"
+}

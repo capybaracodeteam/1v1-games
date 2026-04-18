@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLobby } from "@/hooks/useLobby";
 import type { GameType } from "@1v1/shared";
@@ -15,7 +15,7 @@ function resolveGameType(param: string | null): GameType {
   return "rps"; // default
 }
 
-export default function LobbyPage() {
+function LobbyContent() {
   const { roomCode, error, createRoom, joinRoom } = useLobby();
   const [playerName, setPlayerName] = useState("");
   const [joinCode, setJoinCode] = useState("");
@@ -75,5 +75,13 @@ export default function LobbyPage() {
 
       {error && <p className="text-red-500">{error}</p>}
     </main>
+  );
+}
+
+export default function LobbyPage() {
+  return (
+    <Suspense>
+      <LobbyContent />
+    </Suspense>
   );
 }
