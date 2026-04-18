@@ -24,6 +24,7 @@ interface GameState {
   gameOver: GameOverPayload | null;
   players: GameStartPayload["players"] | null;
   gameType: GameStartPayload["gameType"] | null;
+  gameVersion: number;
 }
 
 export function useGameState(roomCode: string) {
@@ -37,13 +38,14 @@ export function useGameState(roomCode: string) {
       gameOver: null,
       players,
       gameType,
+      gameVersion: 0,
     };
   });
 
   useEffect(() => {
     function onStart({ players, gameType }: GameStartPayload) {
       const initialState = gameType === "rps" ? initialRPSState(players) : null;
-      setGame({ state: initialState, gameOver: null, players, gameType });
+      setGame((prev) => ({ state: initialState, gameOver: null, players, gameType, gameVersion: prev.gameVersion + 1 }));
     }
 
     function onStateUpdate({ state }: { state: unknown }) {

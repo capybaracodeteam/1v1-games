@@ -14,11 +14,12 @@ import type { RoomManager } from "../rooms/RoomManager.js";
 import type { Room } from "../rooms/Room.js";
 import { RockPaperScissorsEngine } from "../games/RockPaperScissors.js";
 import { WordleEngine } from "../games/WordleEngine.js";
+import { TetrisEngine, type TetrisState, type TetrisAction } from "../games/TetrisEngine.js";
 import { isGameError } from "../games/GameEngine.js";
 
 const GameActionSchema = z.object({
   roomCode: z.string().min(1).max(10),
-  action: z.string().min(1).max(10),
+  action: z.string().min(1).max(5000), // larger limit for Tetris board_update JSON
 });
 
 const GameForfeitSchema = z.object({
@@ -43,6 +44,8 @@ function emitGameState(io: IOServer, room: Room): void {
       serialized = RockPaperScissorsEngine.serializeForPlayer(room.gameState as RPSState, player.id);
     } else if (room.gameType === "wordle") {
       serialized = WordleEngine.serializeForPlayer(room.gameState as WordleState, player.id);
+    } else if (room.gameType === "tetris") {
+      serialized = TetrisEngine.serializeForPlayer(room.gameState as TetrisState, player.id);
     }
     if (serialized !== undefined) {
       playerSocket.emit("game:state_update", { state: serialized });
@@ -126,6 +129,15 @@ export function registerGameHandlers(
       );
     } else if (room.gameType === "wordle") {
       result = WordleEngine.applyAction(room.gameState as WordleState, action, socket.id);
+    } else if (room.gameType === "tetris") {
+      let tetrisAction: TetrisAction;
+      try {
+        tetrisAction = JSON.parse(action) as TetrisAction;
+      } catch {
+        socket.emit("game:action_rejected", { reason: "Invalid action format" });
+        return;
+      }
+      result = TetrisEngine.applyAction(room.gameState as TetrisState, tetrisAction, socket.id);
     } else {
       return;
     }
@@ -150,6 +162,12 @@ export function registerGameHandlers(
       const win = WordleEngine.checkWin(room.gameState as WordleState);
       if (win) {
         room.clearGameInterval();
+        room.status = "finished";
+        io.to(roomCode).emit("game:over", { winnerId: win.winnerId });
+      }
+    } else if (room.gameType === "tetris") {
+      const win = TetrisEngine.checkWin(room.gameState as TetrisState);
+      if (win) {
         room.status = "finished";
         io.to(roomCode).emit("game:over", { winnerId: win.winnerId });
       }
@@ -185,6 +203,8 @@ export function registerGameHandlers(
     } else if (room.gameType === "wordle") {
       room.gameState = WordleEngine.initState([p1, p2]);
       startWordleHpInterval(io, room, roomCode, roomManager);
+    } else if (room.gameType === "tetris") {
+      room.gameState = TetrisEngine.initState([p1, p2]);
     }
 
     room.status = "playing";

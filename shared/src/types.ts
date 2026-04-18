@@ -1,6 +1,6 @@
 // ── Game types ──────────────────────────────────────────────────────────────
 
-export type GameType = "rps" | "wordle";
+export type GameType = "rps" | "wordle" | "tetris";
 
 export type RoomStatus = "waiting" | "playing" | "finished";
 
@@ -117,6 +117,17 @@ export interface WordleState {
   players: Record<string, WordlePlayerState>;
   hp: Record<string, number>;
   lastHpTick: number;     // ms timestamp of last server HP computation
+}
+
+// ── Tetris ───────────────────────────────────────────────────────────────────
+
+export type TetrisBoardCell = string | null;
+export type TetrisBoard = TetrisBoardCell[][];
+
+export interface TetrisSerializedState {
+  myGarbagePending: number;
+  opponentBoard: TetrisBoard;
+  playerIds: [string, string];
 }
 
 // ── Typed Socket.io event maps ───────────────────────────────────────────────

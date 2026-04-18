@@ -18,6 +18,12 @@ export default function Home() {
         >
           Wordle
         </Link>
+        <Link
+          href="/lobby?game=tetris"
+          className="px-6 py-3 bg-green-600 text-white rounded-xl text-lg font-semibold hover:bg-green-700 transition-colors text-center"
+        >
+          Tetris
+        </Link>
       </div>
     </main>
   );

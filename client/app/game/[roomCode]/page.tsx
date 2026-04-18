@@ -6,7 +6,8 @@ import { socket } from "@/lib/socket";
 import { useGameState } from "@/hooks/useGameState";
 import RockPaperScissors from "@/components/games/RockPaperScissors";
 import Wordle from "@/components/games/Wordle";
-import type { RPSState, WordleState } from "@1v1/shared";
+import Tetris from "@/components/games/Tetris";
+import type { RPSState, WordleState, TetrisSerializedState } from "@1v1/shared";
 
 export default function GamePage({
   params,
@@ -15,7 +16,7 @@ export default function GamePage({
 }) {
   const { roomCode } = use(params);
   const router = useRouter();
-  const { state, gameType, gameOver, players, sendAction, leave, requestRematch } =
+  const { state, gameType, gameOver, players, gameVersion, sendAction, leave, requestRematch } =
     useGameState(roomCode);
 
   const myId = socket.id ?? "";
@@ -36,6 +37,16 @@ export default function GamePage({
     if (gameType === "wordle") {
       if (!state) return <p className="text-gray-400 animate-pulse">Connecting…</p>;
       return <Wordle state={state as WordleState} myId={myId} onChoice={sendAction} />;
+    }
+    if (gameType === "tetris") {
+      return (
+        <Tetris
+          key={gameVersion}
+          serverState={state as TetrisSerializedState | null}
+          myId={myId}
+          onAction={sendAction}
+        />
+      );
     }
     return <div className="text-gray-400">Unknown game type: {gameType}</div>;
   }
