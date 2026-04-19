@@ -109,14 +109,6 @@ export function emptyBoard(): Board {
   return Array.from({ length: BOARD_ROWS }, () => Array<Cell>(BOARD_COLS).fill(null));
 }
 
-function generateBag(): PieceType[] {
-  const bag: PieceType[] = ["I", "O", "T", "S", "Z", "J", "L"];
-  for (let i = bag.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [bag[i], bag[j]] = [bag[j], bag[i]];
-  }
-  return bag;
-}
 
 export function isValid(board: Board, type: PieceType, rotation: number, row: number, col: number): boolean {
   const matrix = ALL_ROTATIONS[type][rotation];
@@ -196,6 +188,7 @@ function gravityMs(elapsedSeconds: number): number {
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 interface UseTetrisOptions {
+  pieceSequence: PieceType[];
   pendingGarbage: number;
   disabled: boolean;
   onLinesCleared: (count: number, attack: number) => void;
@@ -204,6 +197,7 @@ interface UseTetrisOptions {
 }
 
 export function useTetris({
+  pieceSequence,
   pendingGarbage,
   disabled,
   onLinesCleared,
@@ -213,7 +207,7 @@ export function useTetris({
   // Game state — all in refs to avoid stale closures in RAF/timers
   const boardRef = useRef<Board>(emptyBoard());
   const currentRef = useRef<ActivePiece | null>(null);
-  const bagRef = useRef<PieceType[]>([]);
+  const pieceIndexRef = useRef(0);
   const holdRef = useRef<PieceType | null>(null);
   const canHoldRef = useRef(true);
   const linesRef = useRef(0);
@@ -262,13 +256,15 @@ export function useTetris({
       board: boardRef.current,
       currentPiece: piece,
       ghostRow: piece ? computeGhostRow(boardRef.current, piece) : 0,
-      nextPieces: bagRef.current.slice(0, NEXT_COUNT),
+      nextPieces: Array.from({ length: NEXT_COUNT }, (_, i) =>
+        pieceSequence[(pieceIndexRef.current + i) % pieceSequence.length]
+      ),
       holdPiece: holdRef.current,
       isGameOver: isGameOverRef.current,
       lines: linesRef.current,
       level,
     });
-  }, []);
+  }, [pieceSequence]);
 
   // Apply incoming garbage immediately when pendingGarbage increases
   useEffect(() => {
@@ -291,10 +287,6 @@ export function useTetris({
     sync();
   }, [pendingGarbage, sync]);
 
-  function refillBag() {
-    while (bagRef.current.length < 14) bagRef.current.push(...generateBag());
-  }
-
   function cancelLock() {
     if (lockTimerRef.current !== null) {
       clearTimeout(lockTimerRef.current);
@@ -303,9 +295,8 @@ export function useTetris({
   }
 
   function spawnNext(): boolean {
-    refillBag();
-    const type = bagRef.current.shift()!;
-    refillBag();
+    const type = pieceSequence[pieceIndexRef.current % pieceSequence.length];
+    pieceIndexRef.current++;
     const piece = spawnPiece(type);
     if (!isValid(boardRef.current, piece.type, piece.rotation, piece.row, piece.col)) {
       isGameOverRef.current = true;
@@ -411,7 +402,6 @@ export function useTetris({
 
   // RAF gravity loop — runs once on mount
   useEffect(() => {
-    refillBag();
     gameStartTimeRef.current = Date.now();
     lastFallRef.current = performance.now();
     spawnNext();

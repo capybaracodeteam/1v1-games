@@ -1,4 +1,4 @@
-import type { Player } from "@1v1/shared";
+import type { Player, TetrisPieceType } from "@1v1/shared";
 import type { GameEngine, WinResult, GameError } from "./GameEngine.js";
 
 export type BoardCell = string | null;
@@ -9,6 +9,7 @@ export interface TetrisState {
   garbageQueues: Record<string, number>;
   boards: Record<string, TetrisBoard>;
   toppedOut: string | null;
+  pieceSequence: TetrisPieceType[];
 }
 
 export type TetrisAction =
@@ -20,10 +21,24 @@ export interface TetrisSerializedState {
   myGarbagePending: number;
   opponentBoard: TetrisBoard;
   playerIds: [string, string];
+  pieceSequence: TetrisPieceType[];
 }
 
 function emptyBoard(): TetrisBoard {
   return Array.from({ length: 20 }, () => Array(10).fill(null));
+}
+
+function generateSequence(): TetrisPieceType[] {
+  const pieces: TetrisPieceType[] = [];
+  while (pieces.length < 100) {
+    const bag: TetrisPieceType[] = ["I", "O", "T", "S", "Z", "J", "L"];
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+    pieces.push(...bag);
+  }
+  return pieces.slice(0, 100);
 }
 
 export const TetrisEngine: GameEngine<TetrisState, TetrisAction> = {
@@ -35,6 +50,7 @@ export const TetrisEngine: GameEngine<TetrisState, TetrisAction> = {
       garbageQueues: { [players[0].id]: 0, [players[1].id]: 0 },
       boards: { [players[0].id]: emptyBoard(), [players[1].id]: emptyBoard() },
       toppedOut: null,
+      pieceSequence: generateSequence(),
     };
   },
 
@@ -99,6 +115,7 @@ export const TetrisEngine: GameEngine<TetrisState, TetrisAction> = {
       myGarbagePending: state.garbageQueues[playerId] ?? 0,
       opponentBoard: state.boards[opponentId] ?? emptyBoard(),
       playerIds: state.playerIds,
+      pieceSequence: state.pieceSequence,
     };
   },
 };

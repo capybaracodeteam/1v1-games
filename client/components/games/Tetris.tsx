@@ -18,9 +18,6 @@ function useOptimalCellSize(): number {
   const [cell, setCell] = useState(17);
   useEffect(() => {
     function compute() {
-      // Board must fit: height = 20*cell, width needs room for side panels
-      // Total width ≈ 16*cell + 110px (panels + gaps + page padding)
-      // Total height ≈ 20*cell + 170px (header, room code bar, gaps)
       const wCell = (window.innerWidth - 110) / 16;
       const hCell = (window.innerHeight - 170) / 20;
       setCell(Math.max(14, Math.min(Math.floor(Math.min(wCell, hCell)), 42)));
@@ -116,15 +113,15 @@ function MiniBoard({ board, cellSize }: { board: Board; cellSize: number }) {
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Inner game component (hooks require guaranteed pieceSequence) ──────────────
 
-interface TetrisProps {
+interface TetrisGameProps {
+  pieceSequence: PieceType[];
   serverState: TetrisSerializedState | null;
-  myId: string;
   onAction: (action: string) => void;
 }
 
-export default function Tetris({ serverState, onAction }: TetrisProps) {
+function TetrisGame({ pieceSequence, serverState, onAction }: TetrisGameProps) {
   const cell = useOptimalCellSize();
   const previewCell = Math.max(8, Math.round(cell * 0.65));
   const oppCell = Math.max(4, Math.round(cell * 0.28));
@@ -161,6 +158,7 @@ export default function Tetris({ serverState, onAction }: TetrisProps) {
   }, [onAction]);
 
   const { board, currentPiece, ghostRow, nextPieces, holdPiece, lines, level } = useTetris({
+    pieceSequence,
     pendingGarbage,
     disabled: isGameOver,
     onLinesCleared,
@@ -237,5 +235,35 @@ export default function Tetris({ serverState, onAction }: TetrisProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+// ── Outer component — waits for pieceSequence before mounting game ────────────
+
+interface TetrisProps {
+  serverState: TetrisSerializedState | null;
+  myId: string;
+  onAction: (action: string) => void;
+}
+
+export default function Tetris({ serverState, myId: _myId, onAction }: TetrisProps) {
+  const [pieceSequence, setPieceSequence] = useState<PieceType[] | null>(null);
+
+  useEffect(() => {
+    if (serverState?.pieceSequence && !pieceSequence) {
+      setPieceSequence(serverState.pieceSequence);
+    }
+  }, [serverState, pieceSequence]);
+
+  if (!pieceSequence) {
+    return <p className="text-gray-400 animate-pulse">Loading…</p>;
+  }
+
+  return (
+    <TetrisGame
+      pieceSequence={pieceSequence}
+      serverState={serverState}
+      onAction={onAction}
+    />
   );
 }

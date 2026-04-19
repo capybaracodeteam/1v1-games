@@ -10,7 +10,7 @@ import type {
 import type { RoomManager } from "../rooms/RoomManager.js";
 import { RockPaperScissorsEngine } from "../games/RockPaperScissors.js";
 import { WordleEngine } from "../games/WordleEngine.js";
-import { TetrisEngine } from "../games/TetrisEngine.js";
+import { TetrisEngine, type TetrisState } from "../games/TetrisEngine.js";
 import { startWordleHpInterval } from "./gameHandlers.js";
 
 const LobbyCreateSchema = z.object({
@@ -83,11 +83,19 @@ export function registerLobbyHandlers(
         room.gameState = TetrisEngine.initState([p1, p2]);
       }
 
-      io.to(roomCode).emit("game:start", {
-        roomCode,
-        gameType: room.gameType,
-        players: [p1, p2],
-      });
+      for (const player of room.players) {
+        const playerSocket = io.sockets.sockets.get(player.id);
+        if (!playerSocket) continue;
+        const initialState = room.gameType === "tetris"
+          ? TetrisEngine.serializeForPlayer(room.gameState as TetrisState, player.id)
+          : undefined;
+        playerSocket.emit("game:start", {
+          roomCode,
+          gameType: room.gameType,
+          players: [p1, p2],
+          initialState,
+        });
+      }
     }
   });
 

@@ -34,7 +34,7 @@ type IOServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type IOSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 
 
-function emitGameState(io: IOServer, room: Room): void {
+export function emitGameState(io: IOServer, room: Room): void {
   for (const player of room.players) {
     const playerSocket = io.sockets.sockets.get(player.id);
     if (!playerSocket) continue;
@@ -210,10 +210,18 @@ export function registerGameHandlers(
     room.status = "playing";
     room.touch();
 
-    io.to(roomCode).emit("game:start", {
-      roomCode,
-      gameType: room.gameType,
-      players: [p1, p2],
-    });
+    for (const player of room.players) {
+      const playerSocket = io.sockets.sockets.get(player.id);
+      if (!playerSocket) continue;
+      const initialState = room.gameType === "tetris"
+        ? TetrisEngine.serializeForPlayer(room.gameState as TetrisState, player.id)
+        : undefined;
+      playerSocket.emit("game:start", {
+        roomCode,
+        gameType: room.gameType,
+        players: [p1, p2],
+        initialState,
+      });
+    }
   });
 }

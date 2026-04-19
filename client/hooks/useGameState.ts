@@ -32,9 +32,9 @@ export function useGameState(roomCode: string) {
     const pending = consumePendingGame();
     const players = pending?.players ?? null;
     const gameType = pending?.gameType ?? null;
+    const pendingInitialState = pending?.initialState ?? null;
     return {
-      // For RPS give an optimistic initial state; for other games wait for the server
-      state: (players && gameType === "rps") ? initialRPSState(players) : null,
+      state: (players && gameType === "rps") ? initialRPSState(players) : pendingInitialState,
       gameOver: null,
       players,
       gameType,
@@ -43,9 +43,9 @@ export function useGameState(roomCode: string) {
   });
 
   useEffect(() => {
-    function onStart({ players, gameType }: GameStartPayload) {
-      const initialState = gameType === "rps" ? initialRPSState(players) : null;
-      setGame((prev) => ({ state: initialState, gameOver: null, players, gameType, gameVersion: prev.gameVersion + 1 }));
+    function onStart({ players, gameType, initialState }: GameStartPayload) {
+      const state = gameType === "rps" ? initialRPSState(players) : (initialState ?? null);
+      setGame((prev) => ({ state, gameOver: null, players, gameType, gameVersion: prev.gameVersion + 1 }));
     }
 
     function onStateUpdate({ state }: { state: unknown }) {

@@ -80,6 +80,7 @@ export interface GameStartPayload {
   roomCode: string;
   gameType: GameType;
   players: [Player, Player];
+  initialState?: unknown;
 }
 
 export interface GameStateUpdatePayload {
@@ -123,11 +124,13 @@ export interface WordleState {
 
 export type TetrisBoardCell = string | null;
 export type TetrisBoard = TetrisBoardCell[][];
+export type TetrisPieceType = "I" | "O" | "T" | "S" | "Z" | "J" | "L";
 
 export interface TetrisSerializedState {
   myGarbagePending: number;
   opponentBoard: TetrisBoard;
   playerIds: [string, string];
+  pieceSequence: TetrisPieceType[];
 }
 
 // ── Typed Socket.io event maps ───────────────────────────────────────────────
