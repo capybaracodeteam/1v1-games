@@ -19,6 +19,32 @@
 - Vercel: `NEXT_PUBLIC_SERVER_URL=https://1v1-games-server-production.up.railway.app`
 - Local: `NEXT_PUBLIC_SERVER_URL=http://localhost:4000` (in `client/.env.local`)
 
+## Design System
+
+The site uses a dark, competitive arcade aesthetic. When revamping any page, match this theme.
+
+### Colors
+- Background: `#0d0d0d` (near-black) — set as `--background` in `globals.css`
+- Foreground: `#f0f0f0` (off-white) — set as `--foreground`
+- Accent: `#F5C518` (gold/yellow) — set as `--accent`; use for highlights, hover states, glows
+
+### Fonts
+- **Bebas Neue** (`font-bebas`) — display/heading font; use for big titles, labels, VS text
+- **Geist Sans** (`font-sans`) — body font for readable UI text
+
+### Personality
+- Large, bold Bebas Neue headers (e.g. `text-6xl` to `text-9xl`)
+- Gold glow effects on key elements: `textShadow: "0 0 40px #F5C518, 0 0 80px #F5C51866"`
+- Cards: dark glass style — `border border-white/10 rounded-2xl bg-white/5`, hover to `border-accent/60 bg-accent/5` with gold box-shadow
+- Dividers: `h-px w-48 bg-accent/30`
+- Subtle text: `text-foreground/60`
+- Spacing: generous padding (`p-8`, `py-16`), gaps (`gap-6`, `gap-12`)
+- Transitions: `duration-200` for hover effects
+
+### Tailwind Usage
+- `bg-background`, `text-foreground`, `text-accent`, `bg-accent` — all wired up via `@theme inline` in `globals.css`
+- `font-bebas` — available globally via CSS variable from `layout.tsx`
+
 ## Useful CLI Commands
 - Railway logs: `railway logs --service 53420cf2-ecc2-496b-8df9-201e41c8c84b`
 - Railway deploy: `railway up --service 53420cf2-ecc2-496b-8df9-201e41c8c84b`
