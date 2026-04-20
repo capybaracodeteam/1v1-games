@@ -12,14 +12,14 @@ interface Props {
 const TILE_COLORS: Record<LetterResult, string> = {
   correct: "bg-green-600 text-white border-green-600",
   present: "bg-yellow-500 text-white border-yellow-500",
-  absent:  "bg-white/10 text-foreground/60 border-white/10",
+  absent:  "bg-white/15 text-white border-white/15",
 };
 
 const KEY_COLORS: Record<LetterResult | "unused", string> = {
   correct: "bg-green-600 text-white",
   present: "bg-yellow-500 text-black",
-  absent:  "bg-white/10 text-foreground/40",
-  unused:  "bg-white/10 text-foreground",
+  absent:  "bg-white/15 text-foreground/80",
+  unused:  "bg-white/20 text-foreground",
 };
 
 const KEYBOARD_ROWS = [
@@ -81,16 +81,16 @@ function TileRow({ guess, currentInput, isEmpty }: {
 }) {
   const cells = Array(5).fill(null);
   return (
-    <div className="flex gap-1">
+    <div className="flex gap-1 sm:gap-1.5">
       {cells.map((_, i) => {
         if (guess) {
           const letter = guess.word[i] ?? "";
           const result = guess.result[i];
-          const color = letter ? (result ? TILE_COLORS[result] : "bg-white/5 border-white/20 text-foreground") : "bg-white/5 border-white/10";
+          const color = letter ? (result ? TILE_COLORS[result] : "bg-white/5 border-white/20 text-foreground") : "bg-transparent border-white/[0.07]";
           return (
             <div
               key={i}
-              className={`w-10 h-10 flex items-center justify-center border-2 font-bold text-sm uppercase ${color}`}
+              className={`w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center border-2 font-bold text-sm sm:text-xl uppercase ${color}`}
             >
               {letter}
             </div>
@@ -101,14 +101,14 @@ function TileRow({ guess, currentInput, isEmpty }: {
           return (
             <div
               key={i}
-              className={`w-10 h-10 flex items-center justify-center border-2 font-bold text-sm uppercase text-foreground ${letter ? "border-accent/60 bg-white/5" : "border-white/20 bg-white/5"}`}
+              className={`w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center border-2 font-bold text-sm sm:text-xl uppercase text-foreground ${letter ? "border-accent/80 bg-white/10" : "border-white/50 bg-white/[0.08]"}`}
             >
               {letter}
             </div>
           );
         }
         return (
-          <div key={i} className="w-10 h-10 flex items-center justify-center border-2 border-white/10 bg-white/5" />
+          <div key={i} className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center border-2 border-white/[0.07] bg-transparent" />
         );
       })}
     </div>
@@ -117,11 +117,11 @@ function TileRow({ guess, currentInput, isEmpty }: {
 
 function MiniTileRow({ guess }: { guess?: WordleGuess }) {
   return (
-    <div className="flex gap-0.5">
+    <div className="flex gap-0.5 sm:gap-1">
       {Array(5).fill(null).map((_, i) => {
         const result = guess?.result[i];
-        const color = result ? TILE_COLORS[result] : "bg-gray-300";
-        return <div key={i} className={`w-4 h-4 ${color}`} />;
+        const color = result ? TILE_COLORS[result] : "bg-white/20";
+        return <div key={i} className={`w-4 h-4 sm:w-6 sm:h-6 ${color}`} />;
       })}
     </div>
   );
@@ -212,7 +212,7 @@ export default function Wordle({ state, myId, onChoice }: Props) {
       {/* Main layout: my board + opponent mini-board */}
       <div className="flex gap-8 items-start">
         {/* My board */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 sm:gap-1.5">
           {myState?.roundComplete ? (
             <p className="font-bebas text-sm tracking-widest text-accent/60 mb-2 text-center animate-pulse">Next word coming…</p>
           ) : null}
@@ -226,7 +226,7 @@ export default function Wordle({ state, myId, onChoice }: Props) {
         </div>
 
         {/* Opponent mini-board */}
-        <div className="flex flex-col gap-0.5 mt-6">
+        <div className="flex flex-col gap-0.5 sm:gap-1 mt-6">
           <p className="font-bebas text-xs tracking-widest text-foreground/40 mb-1 text-center">
             Opp (word {(oppState?.wordIndex ?? 0) + 1})
           </p>
@@ -248,7 +248,7 @@ export default function Wordle({ state, myId, onChoice }: Props) {
                 <button
                   key={key}
                   onClick={() => handleKeyClick(key)}
-                  className={`${isWide ? "px-3" : "w-8"} h-10 rounded font-bebas tracking-wider text-sm transition-all duration-150 ${color}`}
+                  className={`${isWide ? "px-2 sm:px-4" : "w-8 sm:w-11"} h-14 rounded font-bebas tracking-wider text-sm sm:text-base transition-all duration-150 ${color}`}
                 >
                   {key}
                 </button>
