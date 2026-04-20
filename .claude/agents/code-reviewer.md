@@ -80,7 +80,7 @@ Output the following prompt word-for-word:
 
 **What would you like to do next?**
 
-1. **Fix all critical errors** — address every issue listed above before pushing
-2. **Push as-is** — proceed to commit/push without fixes
+1. **Fix all critical errors** — address every issue listed above before committing and pushing
+2. **Commit and push as-is** — commit and push without fixes
 
 Reply with 1 or 2.

@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "DATA=$(cat); FILE=$(echo \"$DATA\" | jq -r '.tool_input.file_path // \"\"'); if echo \"$FILE\" | grep -q \"/client/\" && echo \"$FILE\" | grep -qE '\\.css$|/(next|tailwind|postcss)\\.config\\.|/app/layout\\.tsx$'; then lsof -ti:3000 | xargs kill 2>/dev/null || true; sleep 0.5; cd /Users/bawhun/ClaudeProjects/1v1-games/client && nohup npm run dev >> /tmp/nextjs-dev.log 2>&1 & echo '{\"systemMessage\": \"Client dev server restarting — CSS/config change detected\"}'; fi",
+            "statusMessage": "Checking if dev server restart needed..."
+          }
+        ]
+      }
+    ]
+  }
+}
