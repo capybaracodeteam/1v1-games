@@ -12,14 +12,14 @@ interface Props {
 const TILE_COLORS: Record<LetterResult, string> = {
   correct: "bg-green-600 text-white border-green-600",
   present: "bg-yellow-500 text-white border-yellow-500",
-  absent:  "bg-gray-600 text-white border-gray-600",
+  absent:  "bg-white/10 text-foreground/60 border-white/10",
 };
 
 const KEY_COLORS: Record<LetterResult | "unused", string> = {
   correct: "bg-green-600 text-white",
-  present: "bg-yellow-500 text-white",
-  absent:  "bg-gray-500 text-white",
-  unused:  "bg-gray-200 text-black",
+  present: "bg-yellow-500 text-black",
+  absent:  "bg-white/10 text-foreground/40",
+  unused:  "bg-white/10 text-foreground",
 };
 
 const KEYBOARD_ROWS = [
@@ -55,17 +55,17 @@ function HpBar({ hp, label }: { hp: number; label: string }) {
   return (
     <div className="w-full">
       <div className="flex justify-between text-sm mb-1">
-        <span className="font-semibold">{label}</span>
-        <span>{Math.round(clampedHp)} HP</span>
+        <span className="font-bebas tracking-widest text-foreground/70">{label}</span>
+        <span className="font-bebas text-accent">{Math.round(clampedHp)} HP</span>
       </div>
-      <div className="relative w-full h-4 bg-gray-700 rounded overflow-hidden">
+      <div className="relative w-full h-3 bg-white/10 rounded overflow-hidden">
         <div
-          className="absolute left-0 top-0 h-full bg-red-500"
+          className="absolute left-0 top-0 h-full bg-red-500 transition-all duration-200"
           style={{ width: `${redPct}%` }}
         />
         {clampedHp > 100 && (
           <div
-            className="absolute left-0 top-0 h-full bg-blue-500"
+            className="absolute left-0 top-0 h-full bg-blue-400 transition-all duration-200"
             style={{ width: `${bluePct}%` }}
           />
         )}
@@ -86,7 +86,7 @@ function TileRow({ guess, currentInput, isEmpty }: {
         if (guess) {
           const letter = guess.word[i] ?? "";
           const result = guess.result[i];
-          const color = letter ? (result ? TILE_COLORS[result] : "bg-gray-200 border-gray-400") : "bg-gray-200 border-gray-400";
+          const color = letter ? (result ? TILE_COLORS[result] : "bg-white/5 border-white/20 text-foreground") : "bg-white/5 border-white/10";
           return (
             <div
               key={i}
@@ -101,14 +101,14 @@ function TileRow({ guess, currentInput, isEmpty }: {
           return (
             <div
               key={i}
-              className={`w-10 h-10 flex items-center justify-center border-2 font-bold text-sm uppercase ${letter ? "border-gray-600 bg-white" : "border-gray-300 bg-white"}`}
+              className={`w-10 h-10 flex items-center justify-center border-2 font-bold text-sm uppercase text-foreground ${letter ? "border-accent/60 bg-white/5" : "border-white/20 bg-white/5"}`}
             >
               {letter}
             </div>
           );
         }
         return (
-          <div key={i} className="w-10 h-10 flex items-center justify-center border-2 border-gray-300 bg-white" />
+          <div key={i} className="w-10 h-10 flex items-center justify-center border-2 border-white/10 bg-white/5" />
         );
       })}
     </div>
@@ -141,7 +141,7 @@ export default function Wordle({ state, myId, onChoice }: Props) {
     return () => clearInterval(t);
   }, []);
 
-  const elapsedSec = Math.floor((now - state.lastHpTick) / 1000);
+  const elapsedSec = Math.floor((now - state.lastHpTick) / 1500);
   const myHp   = Math.max(0, (state.hp[myId]       ?? 0) - elapsedSec);
   const oppHp  = Math.max(0, (state.hp[opponentId] ?? 0) - elapsedSec);
 
@@ -205,7 +205,7 @@ export default function Wordle({ state, myId, onChoice }: Props) {
       </div>
 
       {/* Word index indicator */}
-      <div className="text-sm text-gray-500">
+      <div className="font-bebas text-sm tracking-widest text-foreground/40">
         Word {(myState?.wordIndex ?? 0) + 1} / {state.wordSequence.length || 15}
       </div>
 
@@ -214,7 +214,7 @@ export default function Wordle({ state, myId, onChoice }: Props) {
         {/* My board */}
         <div className="flex flex-col gap-1">
           {myState?.roundComplete ? (
-            <p className="text-sm text-gray-500 mb-2 text-center">Next word coming…</p>
+            <p className="font-bebas text-sm tracking-widest text-accent/60 mb-2 text-center animate-pulse">Next word coming…</p>
           ) : null}
           {rows.map(({ guess, isCurrentRow }, i) => (
             <TileRow
@@ -227,8 +227,8 @@ export default function Wordle({ state, myId, onChoice }: Props) {
 
         {/* Opponent mini-board */}
         <div className="flex flex-col gap-0.5 mt-6">
-          <p className="text-xs text-gray-500 mb-1 text-center">
-            Opponent (word {(oppState?.wordIndex ?? 0) + 1})
+          <p className="font-bebas text-xs tracking-widest text-foreground/40 mb-1 text-center">
+            Opp (word {(oppState?.wordIndex ?? 0) + 1})
           </p>
           {Array(6).fill(null).map((_, i) => (
             <MiniTileRow key={i} guess={oppState?.guesses[i]} />
@@ -248,7 +248,7 @@ export default function Wordle({ state, myId, onChoice }: Props) {
                 <button
                   key={key}
                   onClick={() => handleKeyClick(key)}
-                  className={`${isWide ? "px-3" : "w-8"} h-10 rounded font-semibold text-xs ${color}`}
+                  className={`${isWide ? "px-3" : "w-8"} h-10 rounded font-bebas tracking-wider text-sm transition-all duration-150 ${color}`}
                 >
                   {key}
                 </button>

@@ -64,7 +64,7 @@ export function startWordleHpInterval(
     if (room.status !== "playing") return;
     const state = room.gameState as WordleState;
     const now = Date.now();
-    const elapsed = Math.floor((now - state.lastHpTick) / 1000);
+    const elapsed = Math.floor((now - state.lastHpTick) / 1500);
 
     // Advance any rounds that completed last tick
     const players = { ...state.players };
@@ -90,7 +90,7 @@ export function startWordleHpInterval(
       ...state,
       players,
       hp,
-      lastHpTick: state.lastHpTick + elapsed * 1000,
+      lastHpTick: state.lastHpTick + elapsed * 1500,
     };
     room.gameState = newState;
     room.touch();
