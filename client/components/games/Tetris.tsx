@@ -32,19 +32,19 @@ function useOptimalCellSize(): number {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function buildRenderBoard(board: Board, piece: ActivePiece | null, ghostRow: number): string[][] {
-  const out: string[][] = board.map((row) => row.map((cell) => cell ?? "#2e2e2e"));
+  const out: string[][] = board.map((row) => row.map((cell) => cell ?? "#282828"));
   if (!piece) return out;
 
   const matrix = ALL_ROTATIONS[piece.type][piece.rotation];
   const color = PIECE_COLORS[piece.type];
-  const ghost = color + "44";
+  const ghost = "#585858";
 
   for (let r = 0; r < matrix.length; r++) {
     for (let c = 0; c < matrix[r].length; c++) {
       if (!matrix[r][c]) continue;
       const br = ghostRow + r;
       const bc = piece.col + c;
-      if (br >= 0 && br < 20 && bc >= 0 && bc < 10 && out[br][bc] === "#2e2e2e") {
+      if (br >= 0 && br < 20 && bc >= 0 && bc < 10 && out[br][bc] === "#282828") {
         out[br][bc] = ghost;
       }
     }
@@ -106,7 +106,7 @@ function MiniBoard({ board, cellSize }: { board: Board; cellSize: number }) {
         row.map((cell, c) => (
           <div
             key={`${r}-${c}`}
-            style={{ width: cellSize, height: cellSize, background: cell ?? "#2e2e2e", borderRadius: 1 }}
+            style={{ width: cellSize, height: cellSize, background: cell ?? "#282828", borderRadius: 1 }}
           />
         ))
       )}
