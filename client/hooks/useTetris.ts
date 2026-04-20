@@ -35,7 +35,6 @@ export interface TetrisDisplay {
   holdPiece: PieceType | null;
   isGameOver: boolean;
   lines: number;
-  level: number;
 }
 
 // ── Piece data ───────────────────────────────────────────────────────────────
@@ -246,12 +245,10 @@ export function useTetris({
     holdPiece: null,
     isGameOver: false,
     lines: 0,
-    level: 1,
   });
 
   const sync = useCallback(() => {
     const piece = currentRef.current;
-    const level = Math.floor(linesRef.current / 10) + 1;
     setDisplay({
       board: boardRef.current,
       currentPiece: piece,
@@ -262,7 +259,6 @@ export function useTetris({
       holdPiece: holdRef.current,
       isGameOver: isGameOverRef.current,
       lines: linesRef.current,
-      level,
     });
   }, [pieceSequence]);
 

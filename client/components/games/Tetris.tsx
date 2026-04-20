@@ -18,9 +18,9 @@ function useOptimalCellSize(): number {
   const [cell, setCell] = useState(17);
   useEffect(() => {
     function compute() {
-      const wCell = (window.innerWidth - 110) / 16;
-      const hCell = (window.innerHeight - 170) / 20;
-      setCell(Math.max(14, Math.min(Math.floor(Math.min(wCell, hCell)), 42)));
+      const wCell = (window.innerWidth - 80) / 16;
+      const hCell = (window.innerHeight - 130) / 20;
+      setCell(Math.max(14, Math.min(Math.floor(Math.min(wCell, hCell)), 50)));
     }
     compute();
     window.addEventListener("resize", compute);
@@ -32,7 +32,7 @@ function useOptimalCellSize(): number {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function buildRenderBoard(board: Board, piece: ActivePiece | null, ghostRow: number): string[][] {
-  const out: string[][] = board.map((row) => row.map((cell) => cell ?? "#1a1a1a"));
+  const out: string[][] = board.map((row) => row.map((cell) => cell ?? "#2e2e2e"));
   if (!piece) return out;
 
   const matrix = ALL_ROTATIONS[piece.type][piece.rotation];
@@ -44,7 +44,7 @@ function buildRenderBoard(board: Board, piece: ActivePiece | null, ghostRow: num
       if (!matrix[r][c]) continue;
       const br = ghostRow + r;
       const bc = piece.col + c;
-      if (br >= 0 && br < 20 && bc >= 0 && bc < 10 && out[br][bc] === "#1a1a1a") {
+      if (br >= 0 && br < 20 && bc >= 0 && bc < 10 && out[br][bc] === "#2e2e2e") {
         out[br][bc] = ghost;
       }
     }
@@ -96,8 +96,9 @@ function MiniBoard({ board, cellSize }: { board: Board; cellSize: number }) {
         display: "grid",
         gridTemplateColumns: `repeat(10, ${cellSize}px)`,
         gap: 1,
-        background: "#111",
+        background: "transparent",
         padding: 2,
+        border: "1px solid rgba(255,255,255,0.25)",
         borderRadius: 3,
       }}
     >
@@ -105,7 +106,7 @@ function MiniBoard({ board, cellSize }: { board: Board; cellSize: number }) {
         row.map((cell, c) => (
           <div
             key={`${r}-${c}`}
-            style={{ width: cellSize, height: cellSize, background: cell ?? "#1a1a1a", borderRadius: 1 }}
+            style={{ width: cellSize, height: cellSize, background: cell ?? "#2e2e2e", borderRadius: 1 }}
           />
         ))
       )}
@@ -157,7 +158,7 @@ function TetrisGame({ pieceSequence, serverState, onAction }: TetrisGameProps) {
     onAction(JSON.stringify({ type: "topped_out" }));
   }, [onAction]);
 
-  const { board, currentPiece, ghostRow, nextPieces, holdPiece, lines, level } = useTetris({
+  const { board, currentPiece, ghostRow, nextPieces, holdPiece, lines } = useTetris({
     pieceSequence,
     pendingGarbage,
     disabled: isGameOver,
@@ -167,31 +168,19 @@ function TetrisGame({ pieceSequence, serverState, onAction }: TetrisGameProps) {
   });
 
   const renderBoard = buildRenderBoard(board, currentPiece, ghostRow);
-  const label = "text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1";
-  const panelBg = (opacity = 1): React.CSSProperties => ({
-    background: "#111",
-    borderRadius: 4,
-    padding: 4,
-    opacity,
-  });
+  const label = "font-bebas text-sm tracking-widest text-foreground/50 mb-1 text-center w-full";
 
   return (
     <div className="flex items-start justify-center gap-2 w-full select-none">
       {/* Left: Hold + stats */}
       <div className="flex flex-col items-center gap-2 pt-1">
-        <div>
+        <div style={{ opacity: holdPiece ? 1 : 0.35 }}>
           <div className={label}>Hold</div>
-          <div style={panelBg(holdPiece ? 1 : 0.35)}>
-            <PiecePreview type={holdPiece} cellSize={previewCell} />
-          </div>
+          <PiecePreview type={holdPiece} cellSize={previewCell} />
         </div>
         <div className="text-center">
           <div className={label}>Lines</div>
-          <div className="text-white font-mono text-sm">{lines}</div>
-        </div>
-        <div className="text-center">
-          <div className={label}>Lvl</div>
-          <div className="text-white font-mono text-sm">{level}</div>
+          <div className="font-bebas text-accent text-lg leading-none">{lines}</div>
         </div>
       </div>
 
@@ -201,10 +190,10 @@ function TetrisGame({ pieceSequence, serverState, onAction }: TetrisGameProps) {
           display: "grid",
           gridTemplateColumns: `repeat(10, ${cell}px)`,
           gap: 1,
-          background: "#0a0a0a",
+          background: "transparent",
           padding: 2,
-          borderRadius: 6,
-          border: "1px solid #333",
+          border: "1px solid rgba(255,255,255,0.35)",
+          borderRadius: 4,
         }}
       >
         {renderBoard.flatMap((row, r) =>
@@ -221,11 +210,9 @@ function TetrisGame({ pieceSequence, serverState, onAction }: TetrisGameProps) {
       <div className="flex flex-col items-center gap-3 pt-1">
         <div>
           <div className={label}>Next</div>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col items-center gap-2">
             {nextPieces.map((type, i) => (
-              <div key={i} style={panelBg()}>
-                <PiecePreview type={type} cellSize={previewCell} />
-              </div>
+              <PiecePreview key={i} type={type} cellSize={previewCell} />
             ))}
           </div>
         </div>
@@ -256,7 +243,7 @@ export default function Tetris({ serverState, myId: _myId, onAction }: TetrisPro
   }, [serverState, pieceSequence]);
 
   if (!pieceSequence) {
-    return <p className="text-gray-400 animate-pulse">Loading…</p>;
+    return <p className="font-bebas tracking-widest text-foreground/40 animate-pulse">Loading…</p>;
   }
 
   return (
