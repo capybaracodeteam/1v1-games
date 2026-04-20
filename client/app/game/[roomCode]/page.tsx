@@ -24,8 +24,8 @@ export default function GamePage({
 
   if (!players) {
     return (
-      <main className="flex items-center justify-center flex-1 p-8">
-        <p className="text-gray-400 animate-pulse">Loading game…</p>
+      <main className="flex items-center justify-center flex-1 p-8 bg-background">
+        <p className="text-foreground/40 animate-pulse tracking-wide">Loading game…</p>
       </main>
     );
   }
@@ -52,33 +52,44 @@ export default function GamePage({
   }
 
   return (
-    <main className="flex flex-col items-center flex-1 gap-6 p-8">
-      <div className="text-lg font-semibold">
-        Room: <span className="font-mono">{roomCode}</span>
-        {opponent && <span className="ml-4 text-gray-500">vs {opponent.name}</span>}
+    <main className="flex flex-col items-center flex-1 gap-6 p-8 bg-background">
+      <div className="font-bebas text-lg tracking-widest text-foreground/50">
+        {roomCode}
+        {opponent && <span className="ml-4 text-accent/70">vs {opponent.name}</span>}
       </div>
 
       {gameOver ? (
-        <div className="flex flex-col items-center gap-4 text-center">
-          <h2 className="text-3xl font-bold">
-            {gameOver.winnerId === myId
-              ? "You won!"
-              : gameOver.winnerId === null
-              ? "Draw!"
-              : gameOver.forfeit
-              ? "Opponent forfeited."
-              : "You lost."}
-          </h2>
+        <div className="flex flex-col items-center gap-8 text-center py-12">
+          {(() => {
+            const isWin = gameOver.winnerId === myId;
+            const isDraw = gameOver.winnerId === null;
+            const label = isWin ? "You Won!" : isDraw ? "Draw!" : gameOver.forfeit ? "Opponent Forfeited." : "You Lost.";
+            return (
+              <h2
+                className="font-bebas leading-none"
+                style={
+                  isWin
+                    ? { fontSize: "6rem", color: "#F5C518", textShadow: "0 0 40px #F5C518, 0 0 80px #F5C51866" }
+                    : isDraw
+                    ? { fontSize: "6rem", color: "#f0f0f0", textShadow: "0 0 30px #f0f0f044" }
+                    : { fontSize: "6rem", color: "#f0f0f099" }
+                }
+              >
+                {label}
+              </h2>
+            );
+          })()}
+          <div className="h-px w-48 bg-accent/30" />
           <div className="flex gap-4">
             <button
               onClick={requestRematch}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700"
+              className="px-8 py-3 bg-accent text-black font-bebas text-xl tracking-wider rounded-xl hover:shadow-[0_0_20px_-4px_#F5C518] transition-all duration-200"
             >
               Rematch
             </button>
             <button
               onClick={() => { leave(); router.push('/'); }}
-              className="px-6 py-3 border rounded-xl font-semibold hover:bg-gray-100"
+              className="px-8 py-3 border border-white/20 text-foreground/70 font-bebas text-xl tracking-wider rounded-xl hover:border-white/40 hover:text-foreground transition-all duration-200"
             >
               Leave
             </button>

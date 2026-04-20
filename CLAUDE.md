@@ -21,7 +21,11 @@
 
 ## Design System
 
-The site uses a dark, competitive arcade aesthetic. When revamping any page, match this theme.
+The site uses a dark, competitive arcade aesthetic.
+
+**"Revamp the UI"** means: reformat the target page/component to follow this design system exactly.
+
+**New features, games, or components** should be built functionally correct first — do NOT apply this design system during initial implementation. UI revamps come after, as a separate step.
 
 ### Colors
 - Background: `#0d0d0d` (near-black) — set as `--background` in `globals.css`
