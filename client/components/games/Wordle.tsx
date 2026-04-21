@@ -248,7 +248,7 @@ export default function Wordle({ state, myId, onChoice }: Props) {
                 <button
                   key={key}
                   onClick={() => handleKeyClick(key)}
-                  className={`${isWide ? "px-2 sm:px-4" : "w-8 sm:w-11"} h-14 rounded font-bebas tracking-wider text-sm sm:text-base transition-all duration-150 ${color}`}
+                  className={`${isWide ? "px-2 sm:px-4" : "w-8 sm:w-11"} h-14 rounded font-bebas tracking-wider text-base sm:text-lg transition-all duration-150 ${color}`}
                 >
                   {key}
                 </button>

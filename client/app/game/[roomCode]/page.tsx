@@ -52,7 +52,7 @@ export default function GamePage({
   }
 
   return (
-    <main className="flex flex-col items-center flex-1 gap-6 p-8 bg-background">
+    <main className="flex flex-col items-center flex-1 gap-6 py-8 px-2 sm:px-8 bg-background">
       <div className="font-bebas text-lg tracking-widest text-foreground/50">
         {roomCode}
         {opponent && <span className="ml-4 text-accent/70">vs {opponent.name}</span>}
