@@ -18,7 +18,7 @@ const TILE_COLORS: Record<LetterResult, string> = {
 const KEY_COLORS: Record<LetterResult | "unused", string> = {
   correct: "bg-green-600 text-white",
   present: "bg-yellow-500 text-black",
-  absent:  "bg-white/15 text-foreground/80",
+  absent:  "bg-white/[0.06] text-foreground/30",
   unused:  "bg-white/20 text-foreground",
 };
 
